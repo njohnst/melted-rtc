@@ -1,0 +1,14 @@
+{
+  "rtc": {
+    "server": {
+      "config": {
+        "iceServers": []
+      }
+    },
+    "client": {
+      "config": {
+        "iceServers": []
+      }
+    }
+  }
+}
