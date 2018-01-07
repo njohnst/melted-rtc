@@ -7,8 +7,8 @@ module.exports = function (ip, port) {
                 .replace(/a=sctpmap.*/, `a=sctpmap:${port} webrtc-datachannel 1024`)
     },
 
-    candidate: function (o) {
-      return o.replace(
+    candidate: function (candidate) {
+      return candidate.replace(
         /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) (\d{1,5})/,
         `${ip} ${port}`
       )
