@@ -1,10 +1,10 @@
 const path = require('path')
 module.exports = {
-  entry: './src/client.js',
+  entry: './sample-client.js',
   resolve: {
     modules: [
-      path.resolve('./src'),
-      path.resolve('./node_modules')
+      path.resolve('../src'),
+      path.resolve('../node_modules')
     ]
   },
   node: {
