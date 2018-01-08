@@ -7,7 +7,7 @@ const wrtc = require('wrtc')
 
 module.exports = {
   init: function (ip, ports, primusConfig, simplePeerConfig) {
-    const transformer = require('./ice-transformer')(ip, ports.udp)
+    const transformer = require('../ice-transformer')(ip, ports.udp)
     const primus = require('./primus-loader')(server, primusConfig)
 
     server.listen(ports.tcp)
