@@ -3,8 +3,8 @@ module.exports = {
   entry: './sample-client.js',
   resolve: {
     modules: [
-      path.resolve('../src'),
-      path.resolve('../node_modules')
+      path.resolve('../../src'),
+      path.resolve('../../node_modules')
     ]
   },
   node: {

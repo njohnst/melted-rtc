@@ -6,11 +6,13 @@ const SimplePeer = require('simple-peer')
 const wrtc = require('wrtc')
 
 module.exports = {
-  init: function (ip, ports, primusConfig, simplePeerConfig) {
-    const transformer = require('../ice-transformer')(ip, ports.udp)
+  start: function (ip, ports, primusConfig, simplePeerConfig) {
+    const transformer = require('../ice-transformer')(ip, ports.rtc)
     const primus = require('./primus-loader')(server, primusConfig)
 
-    server.listen(ports.tcp)
+    server.listen(ports.ws)
+    simplePeerConfig.initiator = false //NOTE Client is peer, they are initiator
+    if (!simplePeerConfig.config) simplePeerConfig.config = { iceServers: [] }
     simplePeerConfig.wrtc = wrtc
     simplePeerConfig.sdpTransform = transformer.sdp
     const rtc = new SimplePeer(simplePeerConfig)
@@ -39,7 +41,6 @@ module.exports = {
 
       rtc.on('connect', function () {
         rtc.write('Hello world!')
-        console.log(rtc)
       })
 
     })

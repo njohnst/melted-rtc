@@ -1,8 +1,10 @@
-const client = require('client/client') //TODO npm package
+const MeltedClient = require('client/client') //TODO npm package
 
 //NOTE Replace with external IP and forwarded UDP port of server
-const host = 'localhost:8080'
+const url = 'ws://127.0.0.1:8080'
 const primusConfig = {}
 const simplePeerConfig = {}
 
-client.connect(host, primusConfig, simplePeerConfig)
+//NOTE set as global so we can easily experiment in developer tools
+global.client = new MeltedClient(url, primusConfig, simplePeerConfig)
+global.client.ws.on('open', ()=>global.client.establishDataChannel())
