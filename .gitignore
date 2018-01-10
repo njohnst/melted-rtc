@@ -58,7 +58,7 @@ typings/
 .env
 
 # public
-public/
+**/public/*.js
 
 # sensitive info
 address.json

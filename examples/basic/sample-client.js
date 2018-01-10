@@ -7,4 +7,4 @@ const simplePeerConfig = {}
 
 //NOTE set as global so we can easily experiment in developer tools
 global.client = new MeltedClient(url, primusConfig, simplePeerConfig)
-global.client.ws.on('open', ()=>global.client.establishDataChannel())
+global.client.primus.on('open', ()=>global.client.establishDataChannel())

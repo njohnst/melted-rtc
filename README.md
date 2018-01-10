@@ -12,9 +12,9 @@ For client-server model networking, the NAT traversal features (ICE) of WebRTC a
 Upon reading the [ICE RFC](https://tools.ietf.org/html/rfc5245), specifically the section about 'peer-reflexive candidates', I found a solution that would allow me to avoid STUN/TURN altogether.
 
 TL;DR:
-In a nutshell, this library provides a facade for WebSockets and WebRTC - it handles signaling, and transforms ICE candidates to use preconfigured IP:PORT combinations (port forwarding!) so that the client can initiate WebRTC SCTP/UDP connections with the application server without any other special acronym servers.
+In a nutshell, this library provides a decorator for WebSockets and WebRTC - it handles signaling, and transforms ICE candidates to use preconfigured IP:PORT combinations (port forwarding!) so that the client can initiate WebRTC SCTP/UDP connections with the application server without any other special acronym servers.
 
-This library is heavily opinionated: it relies on [Primus](https://github.com/primus/primus) for wrapping WebSocket functionality and [simple-peer](https://github.com/feross/simple-peer) for WebRTC.  The 'basic' example relies on [UWS](https://github.com/uNetworking/uWebSockets) as the concrete WebSocket implementation.
+This library relies on [Primus](https://github.com/primus/primus) for wrapping WebSocket functionality and [simple-peer](https://github.com/feross/simple-peer) for WebRTC.  The 'basic' example relies on [UWS](https://github.com/uNetworking/uWebSockets) as the concrete WebSocket implementation.
 
 
 ## Details
