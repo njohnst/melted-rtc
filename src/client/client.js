@@ -30,20 +30,20 @@ function MeltedClient (url, primusConfig, simplePeerConfig) {
     }
   this.simplePeerConfig = simplePeerConfig
 
-    this.establishDataChannel = function () {
-      if (SimplePeer.WEBRTC_SUPPORT) {
-        this.rtc = new SimplePeer(this.simplePeerConfig)
-        this.rtc.on('signal', sendSignal.bind(this))
+  this.establishDataChannel = function () {
+    if (SimplePeer.WEBRTC_SUPPORT) {
+      this.rtc = new SimplePeer(this.simplePeerConfig)
+      this.rtc.on('signal', sendSignal.bind(this))
 
-        //Add listeners for RTC signaling, and remove them once connected
-        addPrimusSignaling(this)
-        this.rtc.on('connect', removePrimusSignaling.bind(this))
-      } else {
-        throw new Error(`SimplePeer.WEBRTC_SUPPORT evaluated to false`)
-      }
+      //Add listeners for RTC signaling, and remove them once connected
+      addPrimusSignaling(this)
+      this.rtc.on('connect', removePrimusSignaling.bind(this))
+    } else {
+      throw new Error(`SimplePeer.WEBRTC_SUPPORT evaluated to false`)
     }
+  }
 
-    this.primus = new Primus(url, primusConfig)
+  this.primus = new Primus(url, primusConfig)
 }
 
 module.exports = MeltedClient

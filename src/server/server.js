@@ -11,7 +11,9 @@ function Melted (ip, wsPort, rtcPort, primusConfig, simplePeerConfig) {
   this.rtcPort = rtcPort
   this.primusConfig = primusConfig
   this.simplePeerConfig = simplePeerConfig
-  const transformer = require('../ice-transformer')(this.ip, this.rtcPort)
+  const Transformer = require('../ice-transformer')
+  transformer = new Transformer(this.ip, this.rtcPort)
+
 
   this.simplePeerConfig.initiator = false
   if (!this.simplePeerConfig.config) {
@@ -19,7 +21,7 @@ function Melted (ip, wsPort, rtcPort, primusConfig, simplePeerConfig) {
     this.simplePeerConfig.config = { iceServers: [] }
   }
   this.simplePeerConfig.wrtc = wrtc
-  this.simplePeerConfig.sdpTransform = transformer.sdp
+  //this.simplePeerConfig.sdpTransform = transformer.
 
   this.start = function () {
     const primus = require('./primus-loader')(server, this.primusConfig)
@@ -38,18 +40,26 @@ function Melted (ip, wsPort, rtcPort, primusConfig, simplePeerConfig) {
 
     spark.on('data', function (data) {
       if (data.type === 'offer' || data.candidate) {
-        rtc.signal(data)
+        console.log('rem')
         console.log(data)
+        rtc.signal(data)
       }
     })
 
     rtc.on('signal', function (data) {
       if (data.type === 'answer') {
-        data.sdp = transformer.candidate(transformer.sdp(data.sdp))
+        console.log('locBefore')
+        console.log(data)
+        data = transformer.answer(data)
+        console.log('locAfter')
+        console.log(data)
         spark.write(data)
       } else if (data.candidate) {
-        data.candidate.candidate = transformer.candidate(data.candidate.candidate)
-        //console.log(data)
+        console.log('locBefore')
+        console.log(data)
+        data = transformer.candidate(data)
+        console.log('locAfter')
+        console.log(data)
         spark.write(data)
       } else {
         spark.write(data)
