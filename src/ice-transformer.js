@@ -1,31 +1,39 @@
 const Transformer = function (ip, port) {
-  this._replace = function (o) {
-    return o.replace(
-       /m=application\s([^\s]+)\s([^\s]+)\s([^\s]+)/,
+  this._candidate = function (o) {
+    return o.replace
+      (
+       /candidate:([^\s]+)\s([^\s]+)\s([^\s]+)\s([^\s]+)\s([^\s]+)\s([^\s]+)/g,
+       `candidate:$1 $2 $3 $4 ${ip} ${port}`
+      )
+  }
+
+  this._sdp = function (sdp) {
+    return sdp.replace(
+       /m=application\s([^\s]+)\s([^\s]+)\s([^\s]+)/g,
        `m=application $1 $2 ${port}`
       )
       .replace(
-       /a=sctpmap:([^\s]+)\s([^\s]+)\s([^\s]+)/,
+       /a=sctpmap:([^\s]+)\s([^\s]+)\s([^\s]+)/g,
        `a=sctpmap:${port} $2 $3`
       )
       .replace(
-       /a=candidate:([^\s]+)\s([^\s]+)\s([^\s]+)\s([^\s]+)\s([^\s]+)\s([^\s]+)/,
-       `a=candidate:$1 $2 $3 $4 ${ip} ${port}`
+       /candidate:([^\s]+)\s([^\s]+)\s([^\s]+)\s([^\s]+)\s([^\s]+)\s([^\s]+)/g,
+       `candidate:$1 $2 $3 $4 ${ip} ${port}`
       )
   }
 
   this.candidate = function (c) {
-    c.candidate.candidate = this._replace(c.candidate.candidate)
+    c.candidate.candidate = this._candidate(c.candidate.candidate)
     return c
   }
 
   this.offer = function (o) {
-    o.sdp = this._replace(o.sdp)
+    o.sdp = this._sdp(o.sdp)
     return o
   }
 
   this.answer = function (a) {
-    a.sdp = this._replace(a.sdp)
+    a.sdp = this._sdp(a.sdp)
     return a
   }
 }

@@ -6,22 +6,29 @@ const SimplePeer = require('simple-peer')
 const wrtc = require('wrtc')
 
 function Melted (ip, wsPort, rtcPort, primusConfig, simplePeerConfig) {
+  if (!ip || !wsPort || !rtcPort) {
+    throw new Error('Invalid arguments: IP, WS and RTC ports must be provided')
+  }
   this.ip = ip
   this.wsPort = wsPort
   this.rtcPort = rtcPort
-  this.primusConfig = primusConfig
-  this.simplePeerConfig = simplePeerConfig
+  this.primusConfig = primusConfig || {}
+  this.simplePeerConfig = simplePeerConfig || {}
   const Transformer = require('../ice-transformer')
   transformer = new Transformer(this.ip, this.rtcPort)
 
 
   this.simplePeerConfig.initiator = false
   if (!this.simplePeerConfig.config) {
-    //Sanity check - if no ICE servers are passed, pass an empty array
+    //Sanity check - if no config is passed, pass an empty array for iceServers
     this.simplePeerConfig.config = { iceServers: [] }
   }
   this.simplePeerConfig.wrtc = wrtc
-  //this.simplePeerConfig.sdpTransform = transformer.
+  if (typeof this.simplePeerConfig.trickle === 'undefined') {
+    //Unless otherwise specified, disable trickle
+    this.simplePeerConfig.trickle = false
+  }
+  this.simplePeerConfig.sdpTransform = transformer._sdp
 
   this.start = function () {
     const primus = require('./primus-loader')(server, this.primusConfig)
