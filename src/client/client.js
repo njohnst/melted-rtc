@@ -1,6 +1,9 @@
+/**
+ * Melted RTC client module
+ * @module melted-client
+ */
 module.exports = (function () {
   const SimplePeer = require('simple-peer')
-  const Primus = require('./primusClient.js')
 
   function sendSignal (data) {
     this.primus.write(data)
@@ -20,7 +23,16 @@ module.exports = (function () {
     this.primus.removeListener('data')
   }
 
-  return function (url, primusConfig, simplePeerConfig) {
+  /**
+   * Creates a melted client
+   * @constructor
+   * @param {Primus.Client} Primus  Primus client library
+   * @param {string} url Server URL
+   * @param {object} primusConfig Optional Primus configuration
+   * @param {object} simplePeerConfig Optional simple-peer configuration
+   * @return {MeltedClient} The instantiated Melted client
+   */
+  return function (Primus, url, primusConfig, simplePeerConfig) {
     if (url.match(/[\w]+:\/\/.+:\d{1,5}/)) {
       this.url = url
     } else {
@@ -30,7 +42,9 @@ module.exports = (function () {
     this.primusConfig = primusConfig
       simplePeerConfig.initiator = true //NOTE Server is peer, we initiate
       if (!simplePeerConfig.config) {
-        simplePeerConfig.config = { iceServers: [] }
+        simplePeerConfig.config = {
+          iceServers: []
+        }
       }
     this.simplePeerConfig = simplePeerConfig
 
