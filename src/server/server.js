@@ -1,23 +1,26 @@
 module.exports = (function () {
-  const express = require('express') //TODO...
-  const app = express()
-  const server = require('http').createServer(app)
-
   const SimplePeer = require('simple-peer')
   const wrtc = require('wrtc')
 
   const Transformer = require('../ice-transformer')
 
-  return function (ip, wsPort, rtcPort, primusConfig, simplePeerConfig) {
-    if (!ip || !wsPort || !rtcPort) {
-      throw new Error('Invalid arguments: IP, WS and RTC ports must be provided')
+  return function (httpServer,
+                   hostName,
+                   wsPort,
+                   rtcPort,
+                   primusConfig,
+                   simplePeerConfig) {
+    if (!hostName || !wsPort || !rtcPort) {
+      throw new Error(
+        'Invalid arguments: IP, WS and RTC ports must be provided'
+      )
     }
-    this.ip = ip
+    this.hostName = hostName
     this.wsPort = wsPort
     this.rtcPort = rtcPort
     this.primusConfig = primusConfig || {}
     this.simplePeerConfig = simplePeerConfig || {}
-    transformer = new Transformer(this.ip, this.rtcPort)
+    transformer = new Transformer(this.hostName, this.rtcPort)
 
     this.simplePeerConfig.initiator = false
     if (!this.simplePeerConfig.config) {
@@ -32,9 +35,9 @@ module.exports = (function () {
     this.simplePeerConfig.sdpTransform = transformer._sdp
 
     this.start = function () {
-      const primus = require('./primus-loader')(server, this.primusConfig)
+      const primus = require('./primus-loader')(httpServer, this.primusConfig)
 
-      server.listen(this.wsPort)
+      httpServer.listen(this.wsPort)
       //NOTE Client is peer, they are initiator
 
   //XXX

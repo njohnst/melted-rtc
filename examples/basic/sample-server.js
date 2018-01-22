@@ -1,3 +1,6 @@
+const express = require('express') //TODO...
+const app = express()
+const httpServer = require('http').createServer(app)
 const Melted = require('../../src/server/server') //TODO npm module
 const uws = require('uws')
 
@@ -10,5 +13,5 @@ const primusConfig = {
 }
 const simplePeerConfig = {}
 
-const server = new Melted (ip, wsPort, rtcPort, primusConfig, simplePeerConfig)
+const server = new Melted (httpServer, ip, wsPort, rtcPort, primusConfig, simplePeerConfig)
 server.start()
