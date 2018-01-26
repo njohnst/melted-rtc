@@ -10,7 +10,7 @@ module.exports = (function () {
   }
 
   function setSignal (data) {
-    if (data.type === 'answer' || data.candidate) {
+    if (data.sdp || data.candidate) {
       this.rtc.signal(data)
     }
   }
@@ -40,12 +40,14 @@ module.exports = (function () {
     }
 
     this.primusConfig = primusConfig
-      simplePeerConfig.initiator = true //NOTE Server is peer, we initiate
-      if (!simplePeerConfig.config) {
-        simplePeerConfig.config = {
-          iceServers: []
-        }
+    simplePeerConfig.initiator = true //NOTE Server is peer, we initiate
+    if (!simplePeerConfig.config) {
+      simplePeerConfig.config = {
+        iceServers: [{
+          url: 'stun:127.0.0.1:8080'
+        }]
       }
+    }
     this.simplePeerConfig = simplePeerConfig
 
     this.establishDataChannel = function () {

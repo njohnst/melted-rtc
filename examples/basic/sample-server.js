@@ -8,10 +8,17 @@ const ip = '127.0.0.1'
 const wsPort = 8080
 const rtcPort = 8080
 
-const primusConfig = {
-  transformer: 'uws'
+const meltedConfig = {
+  simplePeer: {
+    config: {}
+  },
+  primus: {
+    transformer: 'uws'
+  },
+  stun: {
+    port: 8080
+  }
 }
-const simplePeerConfig = {}
 
-const server = new Melted (httpServer, ip, wsPort, rtcPort, primusConfig, simplePeerConfig)
+const server = new Melted (httpServer, ip, wsPort, rtcPort, meltedConfig)
 server.start()
