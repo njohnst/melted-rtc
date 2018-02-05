@@ -10,13 +10,13 @@ const rtcPort = 8080
 
 const meltedConfig = {
   simplePeer: {
-    config: {}
+    channelConfig: {
+      ordered: false,
+      maxRetransmits: 0
+    }
   },
   primus: {
     transformer: 'uws'
-  },
-  stun: {
-    port: 8080
   }
 }
 
