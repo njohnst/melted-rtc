@@ -5,8 +5,6 @@ DISCLAIMER: WIP, not yet in a working state
 
 ## Motivation
 
-Note: If you are building a p2p application, this repository isn't intended for you.
-
 For client-server model networking, the NAT traversal features (ICE) of WebRTC are unnecessary (read: port forwarding!).  In my quest to build a networked game, I struggled to find information on how to make WebRTC work in this capacity.
 
 Upon reading the [ICE RFC](https://tools.ietf.org/html/rfc5245), specifically the section about 'peer-reflexive candidates', I found a solution that would allow me to avoid STUN/TURN altogether.
