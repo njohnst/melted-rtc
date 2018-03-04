@@ -10,6 +10,9 @@ const rtcPort = 8080
 
 const meltedConfig = {
   simplePeer: {
+    config: {
+      customPortRange: '8980-8980'
+    },
     channelConfig: {
       ordered: false,
       maxRetransmits: 0
