@@ -11,7 +11,11 @@ const rtcPort = 8080
 const meltedConfig = {
   simplePeer: {
     config: {
-      customPortRange: '8980-8980'
+      custom: {
+          portRange: '8980-8980',
+          disableTCP: true,
+          disableIPv6: true
+      }
     },
     channelConfig: {
       ordered: false,
