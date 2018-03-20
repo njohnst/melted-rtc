@@ -8,17 +8,21 @@
   },
   "author": "Nicholas Johnston",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/njohnst/melted-rtc.git"
+  },
   "dependencies": {
-    "express": "^4.16.2",
+    "express": "^4.16.3",
     "http": "0.0.0",
     "imports-loader": "^0.7.1",
-    "primus": "^7.1.0",
-    "simple-peer": "^8.2.0",
+    "primus": "^7.1.1",
+    "simple-peer": "^8.5.0",
     "stun": "^1.1.0",
     "uws": "^9.14.0",
-    "wrtc": "0.0.63"
+    "wrtc": "git+https://github.com/js-platform/node-webrtc.git#6d842027641251208458a8d154fae75e331d1503"
   },
   "devDependencies": {
-    "jest": "^22.0.4"
+    "jest": "^22.4.2"
   }
 }

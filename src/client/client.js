@@ -42,11 +42,7 @@ module.exports = (function () {
     this.primusConfig = primusConfig
     simplePeerConfig.initiator = true //NOTE Server is peer, we initiate
     if (!simplePeerConfig.config) {
-      simplePeerConfig.config = {
-        iceServers: [{
-          url: 'stun:127.0.0.1:8080'
-        }]
-      }
+      simplePeerConfig.config = { iceServers: [] }
     }
     this.simplePeerConfig = simplePeerConfig
 
@@ -58,6 +54,15 @@ module.exports = (function () {
         //Add listeners for RTC signaling, and remove them once connected
         addPrimusSignaling(this)
         this.rtc.on('connect', removePrimusSignaling.bind(this))
+
+        //TODO
+        this.rtc.on('data', (data) => {
+          //TODO!
+          const str = new TextDecoder('utf-8').decode(data)
+
+          console.log(str)
+          if (str === 'ping') this.rtc.send('pong')
+        })
       } else {
         throw new Error(`SimplePeer.WEBRTC_SUPPORT evaluated to false`)
       }

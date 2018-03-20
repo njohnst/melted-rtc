@@ -1,24 +1,49 @@
+/**
+ * @function rtcBroadcast send message to all peers
+ * @arg msg message
+ */
+const rtcBroadcast = function (msg) {
+  //TODO
+  this.peers.forEach(peer => peer.send(msg))
+}
+
+/**
+ * @function measureRTT
+ * @arg peer
+ * @arg timeout optional, amount of milliseconds before timeout
+ */
+const measureRTT = function (peer, timeout = 1000) {
+  return new Promise(function (resolve, reject) {
+    const start = Date.now()
+
+    peer.send('ping')
+    //TODO! use event emitter system
+    peer.on('data', function (data) {
+      if (data.toString() === 'pong') {
+        resolve(Date.now() - start)
+      }
+    })
+
+    setTimeout(() => reject(`No response from peer for ${timeout}ms`), timeout)
+  })
+}
+
 module.exports = (function () {
   const SimplePeer = require('simple-peer')
   const wrtc = require('wrtc')
 
-  return function (httpServer, hostName, wsPort, rtcPort, config) {
-    if (!httpServer || !hostName || !wsPort || !rtcPort) {
+  return function (httpServer, hostName, wsPort, config) {
+    if (!httpServer || !hostName || !wsPort) {
       throw new Error(
-        'Invalid arguments: HTTP server, IP, WS and RTC ports must be provided'
+        'Invalid arguments: HTTP server, IP, and WS ports must be provided'
       )
     }
     this.hostName = hostName
     this.wsPort = wsPort
-    this.rtcPort = rtcPort
     this.primusConfig = config && config.primus ? config.primus : {}
     this.simplePeerConfig = config && config.simplePeer ? config.simplePeer : {}
 
     this.simplePeerConfig.initiator = false
-    if (!this.simplePeerConfig.config) {
-      //Sanity check - if no config is passed, pass an empty array of iceServers
-      this.simplePeerConfig.config = { iceServers: [] }
-    }
     this.simplePeerConfig.wrtc = wrtc
 
     //TODO array for now...
@@ -48,15 +73,14 @@ module.exports = (function () {
       peer.on('signal', function (data) {
         spark.write(data)
       })
-    }
 
-    /**
-    @function rtcBroadcast send message to all peers
-    @arg msg message
-    */
-    this.rtcBroadcast = function (msg) {
       //TODO
-      this.peers.forEach(peer => peer.send(msg))
+      peer.on('connect', function () {
+        peer.send('hello world')
+
+        measureRTT(peer).then(n => console.log(`RTT: ${n}`))
+                             .catch(e => console.log(e))
+      })
     }
   }
 })()

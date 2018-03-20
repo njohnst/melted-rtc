@@ -6,15 +6,13 @@ const uws = require('uws')
 
 const ip = '127.0.0.1'
 const wsPort = 8080
-const rtcPort = 8080
 
 const meltedConfig = {
   simplePeer: {
     config: {
-      custom: {
-          portRange: '8980-8980',
-          disableTCP: true,
-          disableIPv6: true
+      portRange: {
+        min: 8980,
+        max: 8980
       }
     },
     channelConfig: {
@@ -27,5 +25,5 @@ const meltedConfig = {
   }
 }
 
-const server = new Melted (httpServer, ip, wsPort, rtcPort, meltedConfig)
+const server = new Melted (httpServer, ip, wsPort, meltedConfig)
 server.start()
