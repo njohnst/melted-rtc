@@ -12,8 +12,7 @@ melted-rtc is a decorator for WebSockets and WebRTC that provides lag compensati
 * [Primus](https://github.com/primus/primus)
 * [simple-peer](https://github.com/feross/simple-peer)
 * [wrtc](https://github.com/js-platform/node-webrtc)
-
-The 'basic' example relies on [UWS](https://github.com/uNetworking/uWebSockets).
+* [UWS](https://github.com/uNetworking/uWebSockets).
 
 
 ## Examples

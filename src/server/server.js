@@ -2,7 +2,7 @@ module.exports = (function () {
   const SimplePeer = require('simple-peer')
   const wrtc = require('wrtc')
   const msgpack = require('msgpack-lite')
-  const EventEmitter = require('events')
+  const EventEmitter = require('eventemitter3')
 
   /**
    * @function rtcBroadcast send message to all peers
@@ -18,16 +18,39 @@ module.exports = (function () {
    * @arg peer
    * @arg timeout optional, amount of milliseconds before timeout
    */
-  const measureRTT = function (peer, timeout = 1000) {
+  const measureRTT = function (client, timeout = 1000) {
     return new Promise(function (resolve, reject) {
       const start = Date.now()
 
-      peer.send(msgpack.encode({0: 'ping'}))
-      peer.on('pong', () => {
+      client.send('ping')
+      client.on('pong', () => {
           resolve(Date.now() - start)
       })
 
-      setTimeout(() => reject(`No response from peer for ${timeout}ms`), timeout)
+      setTimeout(() => reject(`No response from client for ${timeout}ms`), timeout)
+    })
+  }
+
+  /**
+   * @constructor
+   * @arg peer simple peer object
+   * @arg spark primus connection object
+   */
+  const RemoteClient = function (peer, spark) {
+    Object.assign(this, EventEmitter.prototype)
+    EventEmitter.call(this)
+
+    this._peer = peer
+    this._spark = spark
+
+    this.send = (type, msg) => {
+      this._peer.send(msgpack.encode({ [type] : msg }))
+    }
+
+    this._peer.on('data', (data) => {
+      const msg = msgpack.decode(data)
+      const key = Object.keys(msg)[0]
+      this.emit(key, msg[key])
     })
   }
 
@@ -37,6 +60,9 @@ module.exports = (function () {
         'Invalid arguments: HTTP server, IP, and WS ports must be provided'
       )
     }
+    Object.assign(this, EventEmitter.prototype)
+    EventEmitter.call(this)
+
     this.hostName = hostName
     this.wsPort = wsPort
     this.primusConfig = config && config.primus ? config.primus : {}
@@ -45,45 +71,38 @@ module.exports = (function () {
     this.simplePeerConfig.initiator = false
     this.simplePeerConfig.wrtc = wrtc
 
-    //TODO array for now...
-    this.peers = []
+    this.clients = []
 
     this.start = function () {
       this.primus = require('./primus-loader')(httpServer, this.primusConfig)
 
       httpServer.listen(this.wsPort)
 
-      //XXX
       this.primus.on('connection', this.peerConnect, this)
     }
 
     this.peerConnect = function (spark) {
       const peer = new SimplePeer(this.simplePeerConfig)
+      const client = new RemoteClient(peer, spark)
 
-      //TODO
-      this.peers.push(peer)
+      this.clients.push(client)
 
-      spark.on('data', function (data) {
+      spark.on('data', (data) => {
         if (data.sdp || data.candidate) {
           peer.signal(data)
         }
       })
 
-      peer.on('signal', function (data) {
+      peer.on('signal', (data) => {
         spark.write(data)
       })
 
-      //TODO
-      peer.on('connect', function () {
-        peer.send(msgpack.encode('hello world'))
-
-        measureRTT(peer).then(n => console.log(`RTT: ${n}`))
-                             .catch(e => console.log(e))
-      })
-
-      peer.on('data', function (data) {
-        const o = msgpack.decode(data)
-        peer.emit(o[0], o[1]) //TODO
+      peer.on('connect', () => {
+        this.emit('connect', client)
+        // TODO: Testing RTT
+        measureRTT(client)
+        .then((rtt) => console.log(rtt))
+        .catch((e) => { throw e })
       })
     }
   }

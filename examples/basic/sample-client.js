@@ -13,4 +13,3 @@ global.client = new MeltedClient(
   primusConfig,
   simplePeerConfig
 )
-global.client.primus.on('open', ()=>global.client.establishDataChannel())

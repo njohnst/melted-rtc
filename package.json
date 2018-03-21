@@ -16,7 +16,6 @@
     "express": "^4.16.3",
     "http": "0.0.0",
     "imports-loader": "^0.7.1",
-    "inherits": "^2.0.3",
     "msgpack-lite": "^0.1.26",
     "primus": "^7.1.1",
     "simple-peer": "^8.5.0",
