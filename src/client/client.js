@@ -4,6 +4,7 @@
  */
 module.exports = (function () {
   const SimplePeer = require('simple-peer')
+  const msgpack = require('msgpack-lite')
 
   function sendSignal (data) {
     this.primus.write(data)
@@ -44,6 +45,12 @@ module.exports = (function () {
     if (!simplePeerConfig.config) {
       simplePeerConfig.config = { iceServers: [] }
     }
+    if (!simplePeerConfig.channelConfig) {
+      simplePeerConfig.channelConfig = {
+        ordered: false,
+        maxRetransmits: 0
+      }
+    }
     this.simplePeerConfig = simplePeerConfig
 
     this.establishDataChannel = function () {
@@ -57,11 +64,12 @@ module.exports = (function () {
 
         //TODO
         this.rtc.on('data', (data) => {
-          //TODO!
-          const str = new TextDecoder('utf-8').decode(data)
+          const o = msgpack.decode(data)
+          this.rtc.emit(o[0], o[1])
+        })
 
-          console.log(str)
-          if (str === 'ping') this.rtc.send('pong')
+        this.rtc.on('ping', () => {
+          this.rtc.send(msgpack.encode({0: 'pong'}))
         })
       } else {
         throw new Error(`SimplePeer.WEBRTC_SUPPORT evaluated to false`)

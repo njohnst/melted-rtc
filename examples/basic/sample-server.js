@@ -14,10 +14,6 @@ const meltedConfig = {
         min: 8980,
         max: 8980
       }
-    },
-    channelConfig: {
-      ordered: false,
-      maxRetransmits: 0
     }
   },
   primus: {

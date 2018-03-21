@@ -1,36 +1,35 @@
-/**
- * @function rtcBroadcast send message to all peers
- * @arg msg message
- */
-const rtcBroadcast = function (msg) {
-  //TODO
-  this.peers.forEach(peer => peer.send(msg))
-}
-
-/**
- * @function measureRTT
- * @arg peer
- * @arg timeout optional, amount of milliseconds before timeout
- */
-const measureRTT = function (peer, timeout = 1000) {
-  return new Promise(function (resolve, reject) {
-    const start = Date.now()
-
-    peer.send('ping')
-    //TODO! use event emitter system
-    peer.on('data', function (data) {
-      if (data.toString() === 'pong') {
-        resolve(Date.now() - start)
-      }
-    })
-
-    setTimeout(() => reject(`No response from peer for ${timeout}ms`), timeout)
-  })
-}
-
 module.exports = (function () {
   const SimplePeer = require('simple-peer')
   const wrtc = require('wrtc')
+  const msgpack = require('msgpack-lite')
+  const EventEmitter = require('events')
+
+  /**
+   * @function rtcBroadcast send message to all peers
+   * @arg msg message
+   */
+  const rtcBroadcast = function (msg) {
+    //TODO
+    this.peers.forEach(peer => peer.send(msg))
+  }
+
+  /**
+   * @function measureRTT
+   * @arg peer
+   * @arg timeout optional, amount of milliseconds before timeout
+   */
+  const measureRTT = function (peer, timeout = 1000) {
+    return new Promise(function (resolve, reject) {
+      const start = Date.now()
+
+      peer.send(msgpack.encode({0: 'ping'}))
+      peer.on('pong', () => {
+          resolve(Date.now() - start)
+      })
+
+      setTimeout(() => reject(`No response from peer for ${timeout}ms`), timeout)
+    })
+  }
 
   return function (httpServer, hostName, wsPort, config) {
     if (!httpServer || !hostName || !wsPort) {
@@ -76,10 +75,15 @@ module.exports = (function () {
 
       //TODO
       peer.on('connect', function () {
-        peer.send('hello world')
+        peer.send(msgpack.encode('hello world'))
 
         measureRTT(peer).then(n => console.log(`RTT: ${n}`))
                              .catch(e => console.log(e))
+      })
+
+      peer.on('data', function (data) {
+        const o = msgpack.decode(data)
+        peer.emit(o[0], o[1]) //TODO
       })
     }
   }
