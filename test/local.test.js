@@ -1,3 +1,4 @@
+require('jest')
 const Server = require('../src/server/server')
 const Client = require('../src/client/client')
 
@@ -7,12 +8,28 @@ const Client = require('../src/client/client')
 */
 
 test('invalid server', () => {
-    expect(Server).toThrow()
+    expect(() => new Server()).toThrow()
 })
 
 test('start server', () => {
-    const ip = '127.0.0.1'
-    const wsPort = 8080
-    const rtcPort = 8080
-    expect(new Server(ip, wsPort, rtcPort)).not.toBe(false)
+    const express = require('express') //TODO...
+    const app = express()
+    const httpServer = require('http').createServer(app)
+
+    const config = {
+      wsPort: 8080,
+      simplePeerConfig: {
+        config: {
+          portRange: {
+            min: 9000,
+            max: 9100
+          }
+        }
+      }
+    }
+    expect(() => {
+      const server = new Server(httpServer, config)
+      server.start()
+      server.stop()
+    }).not.toThrow()
 })

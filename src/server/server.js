@@ -3,15 +3,7 @@ module.exports = (function () {
   const wrtc = require('wrtc')
   const msgpack = require('msgpack-lite')
   const EventEmitter = require('eventemitter3')
-
-  /**
-   * @function rtcBroadcast send message to all peers
-   * @arg msg message
-   */
-  const rtcBroadcast = function (msg) {
-    //TODO
-    this.peers.forEach(peer => peer.send(msg))
-  }
+  const World = require('../synchronization')
 
   /**
    * @function measureRTT
@@ -47,6 +39,15 @@ module.exports = (function () {
       this._peer.send(msgpack.encode({ [type] : msg }))
     }
 
+    this.wsSend = (type, msg) => {
+      this._spark.send({ [type] : msg})
+    }
+
+    this._spark.on('data', (data) => {
+      const key = Object.keys(data)[0]
+      this.emit(key, data[key])
+    })
+
     this._peer.on('data', (data) => {
       const msg = msgpack.decode(data)
       const key = Object.keys(msg)[0]
@@ -54,42 +55,56 @@ module.exports = (function () {
     })
   }
 
-  return function (httpServer, hostName, wsPort, config) {
-    if (!httpServer || !hostName || !wsPort) {
+  return function (httpServer, config) {
+    if (!httpServer) {
       throw new Error(
-        'Invalid arguments: HTTP server, IP, and WS ports must be provided'
+        'Invalid arguments: httpServer must be provided'
       )
     }
     Object.assign(this, EventEmitter.prototype)
     EventEmitter.call(this)
 
-    this.hostName = hostName
-    this.wsPort = wsPort
-    this.primusConfig = config && config.primus ? config.primus : {}
-    this.simplePeerConfig = config && config.simplePeer ? config.simplePeer : {}
+    this._primusConfig = config && config.primus ? config.primus : {}
+    this._simplePeerConfig = config && config.simplePeer ? config.simplePeer : {}
 
-    this.simplePeerConfig.initiator = false
-    this.simplePeerConfig.wrtc = wrtc
+    this._simplePeerConfig.initiator = false
+    this._simplePeerConfig.wrtc = wrtc
 
-    this.clients = []
+    this._clients = []
 
-    this.start = function () {
-      this.primus = require('./primus-loader')(httpServer, this.primusConfig)
+    this.start = function (options) {
+      //TODO
+      this._world = new World(
+        options && options.interval || 50,
+        options && options.nSnaps || 10,
+        options && options.tickMax || 65535
+      )
 
-      httpServer.listen(this.wsPort)
+      this._primus = require('./primus-loader')(httpServer, this._primusConfig)
 
-      this.primus.on('connection', this.peerConnect, this)
+      httpServer.listen(config && config.wsPort ? config.wsPort : 8080)
+
+      this._primus.on('connection', this._peerConnect, this)
     }
 
-    this.peerConnect = function (spark) {
-      const peer = new SimplePeer(this.simplePeerConfig)
+    this.stop = function () {
+      //TODO
+      this._clients.forEach(c => c.destroy())
+      httpServer.close()
+      console.log('Server shutting down')
+    }
+
+    this._peerConnect = function (spark) {
+      const peer = new SimplePeer(this._simplePeerConfig)
       const client = new RemoteClient(peer, spark)
 
-      this.clients.push(client)
+      this._clients.push(client)
 
       spark.on('data', (data) => {
         if (data.sdp || data.candidate) {
           peer.signal(data)
+        } else {
+          this.emit()
         }
       })
 
