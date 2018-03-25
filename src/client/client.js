@@ -10,13 +10,12 @@ module.exports = (function () {
   /**
    * Creates a melted client
    * @constructor
-   * @param {Primus.Client} Primus  Primus client library
+   * @param {object} Primus  Primus client library
    * @param {string} url Server URL
-   * @param {object} primusConfig Optional Primus configuration
-   * @param {object} simplePeerConfig Optional simple-peer configuration
-   * @return {MeltedClient} The instantiated Melted client
+   * @param {object} config Optional keys primus, simplePeer with config objects
+   * @return {object} The instantiated Melted client
    */
-  return function MeltedClient (Primus, url, primusConfig, simplePeerConfig) {
+  return function MeltedClient (Primus, url, config) {
     if (url.match(/[\w]+:\/\/.+:\d{1,5}/)) {
       this.url = url
     } else {
@@ -25,26 +24,33 @@ module.exports = (function () {
     Object.assign(this, EventEmitter.prototype)
     EventEmitter.call(this)
 
-    this.primusConfig = primusConfig
-    simplePeerConfig.initiator = true //NOTE Server is peer, we initiate
-    if (!simplePeerConfig.config) {
-      simplePeerConfig.config = { iceServers: [] }
+    this._simplePeerConfig = config && config.simplePeer || {}
+    this._simplePeerConfig.initiator = true
+    if (!this._simplePeerConfig.config) {
+      this._simplePeerConfig.config = { iceServers: [] }
     }
-    if (!simplePeerConfig.channelConfig) {
-      simplePeerConfig.channelConfig = {
+    this._simplePeerConfig.channelConfig = {
         ordered: false,
         maxRetransmits: 0
-      }
     }
-    this.simplePeerConfig = simplePeerConfig
-    this._primus = new Primus(url, primusConfig)
+
+    this._primus = new Primus(url, config && config.primus || {})
 
     this.send = (type, msg) => {
       this._peer.send(msgpack.encode({ [type] : msg }))
     }
 
-    if (SimplePeer.WEBRTC_SUPPORT) {
-      this._peer = new SimplePeer(this.simplePeerConfig)
+    this.wsSend = (type, msg) => {
+      this._primus.send({ [type] : msg})
+    }
+
+    this.disconnect = () => {
+      this._peer.destroy()
+      this._primus.destroy()
+    }
+
+    if (SimplePeer.WEBRTC_SUPPORT || this._simplePeerConfig.wrtc) {
+      this._peer = new SimplePeer(this._simplePeerConfig)
 
       this._peer.on('signal', (data) => {
         this._primus.write(data)
@@ -53,6 +59,9 @@ module.exports = (function () {
       this._primus.on('data', (data) => {
         if (data.sdp || data.candidate) {
           this._peer.signal(data)
+        } else {
+          const key = Object.keys(data)[0]
+          this.emit(key, data[key])
         }
       })
 
@@ -66,8 +75,8 @@ module.exports = (function () {
         this.emit(key, msg[key])
       })
 
-      // TODO: Testing RTT
       this.on('ping', () => this.send('pong'))
+      this.on('wsPing', () => this.wsSend('wsPong'))
     } else {
       throw new Error(`SimplePeer.WEBRTC_SUPPORT evaluated to false`)
     }

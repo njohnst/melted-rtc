@@ -7,17 +7,24 @@ module.exports = (function () {
 
   /**
    * @function measureRTT
-   * @arg peer
-   * @arg timeout optional, amount of milliseconds before timeout
+   * @arg {object} peer
+   * @arg {number} timeout optional, amount of milliseconds before timeout
    */
-  const measureRTT = function (client, timeout = 1000) {
+  const measureRTT = function (client, timeout = 1000, useWS = false) {
     return new Promise(function (resolve, reject) {
       const start = Date.now()
 
-      client.send('ping')
-      client.on('pong', () => {
-          resolve(Date.now() - start)
-      })
+      if (useWS) {
+        client.wsSend('wsPing')
+        client.on('wsPong', () => {
+            resolve(Date.now() - start)
+        })
+      } else {
+        client.send('ping')
+        client.on('pong', () => {
+            resolve(Date.now() - start)
+        })
+      }
 
       setTimeout(() => reject(`No response from client for ${timeout}ms`), timeout)
     })
@@ -25,8 +32,8 @@ module.exports = (function () {
 
   /**
    * @constructor
-   * @arg peer simple peer object
-   * @arg spark primus connection object
+   * @arg {object} peer simple peer object
+   * @arg {object} spark primus connection object
    */
   const RemoteClient = function (peer, spark) {
     Object.assign(this, EventEmitter.prototype)
@@ -43,6 +50,14 @@ module.exports = (function () {
       this._spark.send({ [type] : msg})
     }
 
+    this.ping = (timeout) => {
+      return measureRTT(this, timeout)
+    }
+
+    this.wsPing = (timeout) => {
+      return measureRTT(this, timeout)
+    }
+
     this._spark.on('data', (data) => {
       const key = Object.keys(data)[0]
       this.emit(key, data[key])
@@ -55,7 +70,7 @@ module.exports = (function () {
     })
   }
 
-  return function (httpServer, config) {
+  return function MeltedServer (httpServer, config) {
     if (!httpServer) {
       throw new Error(
         'Invalid arguments: httpServer must be provided'
@@ -91,6 +106,7 @@ module.exports = (function () {
       //TODO
       this._clients.forEach(c => c.destroy())
       httpServer.close()
+      this._primus.destroy()
       console.log('Server shutting down')
     }
 
@@ -114,10 +130,6 @@ module.exports = (function () {
 
       peer.on('connect', () => {
         this.emit('connect', client)
-        // TODO: Testing RTT
-        measureRTT(client)
-        .then((rtt) => console.log(rtt))
-        .catch((e) => { throw e })
       })
     }
   }

@@ -4,7 +4,7 @@ UDP/TCP game server for Node.js.
 
 ## Details
 
-melted-rtc is a decorator for WebSockets and WebRTC that provides lag compensation methods, and utilizes non-standard RTCConfiguration options to specify a fixed range of ports for inbound UDP connections.
+melted-rtc is a facade for WebSockets and WebRTC that provides lag compensation methods, and utilizes non-standard RTCConfiguration options to specify a fixed range of ports for inbound UDP connections.
 
 
 ## Dependencies
@@ -15,6 +15,4 @@ melted-rtc is a decorator for WebSockets and WebRTC that provides lag compensati
 * [UWS](https://github.com/uNetworking/uWebSockets).
 
 
-## Examples
-
-TODO
+Refer to `examples/basic` for a sample implementation.
