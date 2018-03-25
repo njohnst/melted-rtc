@@ -86,6 +86,13 @@ module.exports = (function () {
     this._simplePeerConfig.wrtc = wrtc
 
     this._clients = []
+    const self = this
+
+    RemoteClient.prototype.broadcast = function (type, msg) {
+      self._clients.forEach(client => {
+        if (!client == this) client.send(type, msg)
+      })
+    }
 
     this.start = function (options) {
       //TODO
