@@ -1,9 +1,25 @@
 const path = require('path')
+const primusConfig = require('./server-config.json').primus
+
 module.exports = {
   entry: './sample-client.js',
+  module: {
+    rules: [
+      {
+        test: require.resolve('../../primus-client-shim.js'),
+        use: [
+          {
+            loader: 'val-loader',
+            options: {
+              primusConfig: primusConfig
+            }
+          }
+        ]
+      }
+    ]
+  },
   resolve: {
     modules: [
-      path.resolve('../../src'),
       path.resolve('../../node_modules')
     ]
   },
@@ -12,6 +28,6 @@ module.exports = {
   },
   output: {
     path: path.join(__dirname, '/public'),
-    filename: 'bundledClient.js'
+    filename: 'bundled-client.js'
   }
 }

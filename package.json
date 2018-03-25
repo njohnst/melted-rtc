@@ -2,7 +2,7 @@
   "name": "melted-rtc",
   "version": "0.0.1",
   "description": "A client-server library for WebRTC signaling that avoids STUN",
-  "main": "src/server/server.js",
+  "main": "server.js",
   "scripts": {
     "test": "jest"
   },
@@ -18,12 +18,14 @@
     "imports-loader": "^0.7.1",
     "msgpack-lite": "^0.1.26",
     "primus": "^7.1.1",
+    "primus-msgpack": "^1.0.2",
     "simple-peer": "^8.5.0",
     "stun": "^1.1.0",
     "uws": "^9.14.0",
     "wrtc": "git+https://github.com/js-platform/node-webrtc.git#6d842027641251208458a8d154fae75e331d1503"
   },
   "devDependencies": {
-    "jest": "^22.4.2"
+    "jest": "^22.4.2",
+    "val-loader": "^1.1.0"
   }
 }

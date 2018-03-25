@@ -1,0 +1,15 @@
+{
+  "wsPort": 8080,
+  "simplePeer": {
+    "config": {
+      "portRange": {
+        "min": 8980,
+        "max": 8980
+      }
+    }
+  },
+  "primus": {
+    "parser": "msgpack",
+    "transformer": "uws"
+  }
+}

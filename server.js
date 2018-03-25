@@ -1,9 +1,10 @@
 module.exports = (function () {
+  const Primus = require('primus')
   const SimplePeer = require('simple-peer')
   const wrtc = require('wrtc')
   const msgpack = require('msgpack-lite')
   const EventEmitter = require('eventemitter3')
-  const World = require('../synchronization')
+  const World = require('./synchronization')
 
   /**
    * @function measureRTT
@@ -47,7 +48,7 @@ module.exports = (function () {
     }
 
     this.wsSend = (type, msg) => {
-      this._spark.send({ [type] : msg})
+      this._spark.write({ [type] : msg})
     }
 
     this.ping = (timeout) => {
@@ -55,7 +56,7 @@ module.exports = (function () {
     }
 
     this.wsPing = (timeout) => {
-      return measureRTT(this, timeout)
+      return measureRTT(this, timeout, true)
     }
 
     this._spark.on('data', (data) => {
@@ -102,7 +103,7 @@ module.exports = (function () {
         options && options.tickMax || 65535
       )
 
-      this._primus = require('./primus-loader')(httpServer, this._primusConfig)
+      this._primus = new Primus(httpServer, this._primusConfig)
 
       httpServer.listen(config && config.wsPort ? config.wsPort : 8080)
 
@@ -127,7 +128,8 @@ module.exports = (function () {
         if (data.sdp || data.candidate) {
           peer.signal(data)
         } else {
-          this.emit()
+          const key = Object.keys(data)[0]
+          this.emit(key, data[key])
         }
       })
 

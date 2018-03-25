@@ -10,7 +10,7 @@ module.exports = (function () {
   /**
    * Creates a melted client
    * @constructor
-   * @param {object} Primus  Primus client library
+   * @param {object} Primus the generated Primus client library
    * @param {string} url Server URL
    * @param {object} config Optional keys primus, simplePeer with config objects
    * @return {object} The instantiated Melted client
@@ -41,7 +41,7 @@ module.exports = (function () {
     }
 
     this.wsSend = (type, msg) => {
-      this._primus.send({ [type] : msg})
+      this._primus.write({ [type] : msg })
     }
 
     this.disconnect = () => {
