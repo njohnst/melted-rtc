@@ -2,7 +2,7 @@
   "name": "melted-rtc",
   "version": "0.0.1",
   "description": "A client-server library for WebRTC signaling that avoids STUN",
-  "main": "server.js",
+  "main": "src/server/server.js",
   "scripts": {
     "test": "jest"
   },
