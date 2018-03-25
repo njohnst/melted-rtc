@@ -1,7 +1,7 @@
 require('jest')
-const Server = require('../src/server/server')
-const Client = require('../src/client/client')
-const Primus = require('../src/client/primusClient')
+const Server = require('../server')
+const Client = require('../client')
+const Primus = require('../primus-client-shim')()
 
 /*
   N.B. This test suite only covers the localhost scenario,
