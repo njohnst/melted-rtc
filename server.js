@@ -91,7 +91,13 @@ module.exports = (function () {
 
     RemoteClient.prototype.broadcast = function (type, msg) {
       self._clients.forEach(client => {
-        if (!client == this) client.send(type, msg)
+        if (client !== this) client.send(type, msg)
+      })
+    }
+
+    RemoteClient.prototype.wsBroadcast = function (type, msg) {
+      self._clients.forEach(client => {
+        if (client !== this) client.wsSend(type, msg)
       })
     }
 
