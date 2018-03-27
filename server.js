@@ -86,8 +86,15 @@ module.exports = (function () {
     this._simplePeerConfig.initiator = false
     this._simplePeerConfig.wrtc = wrtc
 
-    this._clients = []
+    this._clients = new Map()
+    this._uidCounter = 0
     const self = this
+
+    this._createUID = function (uidMax = 65535) {
+      const uid = this._uidCounter
+      this._uidCounter = this._uidCounter < uidMax ? this._uidCounter + 1 : 0
+      return uid
+    }
 
     RemoteClient.prototype.broadcast = function (type, msg) {
       self._clients.forEach(client => {
@@ -124,11 +131,22 @@ module.exports = (function () {
       console.log('Server shutting down')
     }
 
+    this.broadcast = function (type, msg) {
+      this._clients.forEach((client, uid) => {
+        client.send(type, msg)
+      })
+    }
+
+    this.wsBroadcast = function (type, msg) {
+      this._clients.forEach((client, uid) => {
+        client.wsSend(type, msg)
+      })
+    }
+
     this._peerConnect = function (spark) {
       const peer = new SimplePeer(this._simplePeerConfig)
       const client = new RemoteClient(peer, spark)
-
-      this._clients.push(client)
+      const uid = this._createUID()
 
       spark.on('data', (data) => {
         if (data.sdp || data.candidate) {
@@ -139,12 +157,35 @@ module.exports = (function () {
         }
       })
 
+      spark.on('error', (e) => {
+        this._clients.delete(uid)
+        console.log(e)
+        this.emit('disconnect', client)
+      })
+
+      spark.on('end', () => {
+        this._clients.delete(uid)
+        this.emit('disconnect', client)
+      })
+
       peer.on('signal', (data) => {
         spark.write(data)
       })
 
       peer.on('connect', () => {
+        this._clients.set(uid, client)
         this.emit('connect', client)
+      })
+
+      peer.on('error', (e) => {
+        this._clients.delete(uid)
+        console.log(e)
+        this.emit('disconnect', client)
+      })
+
+      peer.on('close', () => {
+        this._clients.delete(uid)
+        this.emit('disconnect', client)
       })
     }
   }
