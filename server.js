@@ -4,7 +4,6 @@ module.exports = (function () {
   const wrtc = require('wrtc')
   const msgpack = require('msgpack-lite')
   const EventEmitter = require('eventemitter3')
-  const World = require('./synchronization')
 
   /**
    * @function measureRTT
@@ -108,14 +107,7 @@ module.exports = (function () {
       })
     }
 
-    this.start = function (options) {
-      //TODO
-      this._world = new World(
-        options && options.interval || 50,
-        options && options.nSnaps || 10,
-        options && options.tickMax || 65535
-      )
-
+    this.start = function () {
       this._primus = new Primus(httpServer, this._primusConfig)
 
       httpServer.listen(config && config.wsPort ? config.wsPort : 8080)
