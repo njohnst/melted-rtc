@@ -80,9 +80,9 @@ module.exports = (function () {
     this._emptySlots = Array(maxClients).fill().map((x, i) => i)
     this._clients = new Map()
 
-    this.forEach = this._clients.forEach
-    this.get = this._clients.get
-    this.has = this._clients.has
+    this.forEach = this._clients.forEach.bind(this._clients)
+    this.get = this._clients.get.bind(this._clients)
+    this.has = this._clients.has.bind(this._clients)
 
     this.addClient = function (client) {
       if (!self._emptySlots.length) return -1
