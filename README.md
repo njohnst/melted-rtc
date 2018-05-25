@@ -1,5 +1,5 @@
 # melted-rtc
-UDP/TCP signaling server for Node.js.
+UDP/TCP game server for Node.js.
 
 
 ## Details
@@ -83,7 +83,7 @@ Disconnect from the server.
 * [Primus](https://github.com/primus/primus)
 * [simple-peer](https://github.com/feross/simple-peer)
 * [wrtc](https://github.com/js-platform/node-webrtc)
-* [UWS](https://github.com/uNetworking/uWebSockets).
+* [UWS](https://github.com/uNetworking/uWebSockets)
 
 
 Refer to `examples/basic` for a sample implementation.

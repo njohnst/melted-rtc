@@ -1,4 +1,5 @@
 {
+  "maxClients": 10,
   "wsPort": 8080,
   "simplePeer": {
     "config": {

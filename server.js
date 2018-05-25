@@ -70,6 +70,41 @@ module.exports = (function () {
     })
   }
 
+  /**
+   * @constructor
+   * @arg {number} maxClients maximum concurrent clients
+   */
+  const Clients = function (maxClients) {
+    const self = this
+
+    this._emptySlots = Array(maxClients).fill().map((x, i) => i)
+    this._clients = new Map()
+
+    this.forEach = this._clients.forEach
+    this.get = this._clients.get
+    this.has = this._clients.has
+
+    this.addClient = function (client) {
+      if (!self._emptySlots.length) return -1
+
+      const slot = self._emptySlots.shift()
+
+      self._clients.set(slot, client)
+      return slot
+    }
+
+    this.removeClient = function (slot) {
+      if (self._clients.has(slot)) {
+        self._clients.delete(slot)
+        self._emptySlots.push(slot)
+      }
+    }
+
+    this.isFull = function () {
+      return !this._emptySlots.length
+    }
+  }
+
   return function MeltedServer (httpServer, config) {
     if (!httpServer) {
       throw new Error(
@@ -85,24 +120,17 @@ module.exports = (function () {
     this._simplePeerConfig.initiator = false
     this._simplePeerConfig.wrtc = wrtc
 
-    this._clients = new Map()
-    this._uidCounter = 0
+    this.clients = new Clients(config && config.maxClients || 1)
     const self = this
 
-    this._createUID = function (uidMax = 65535) {
-      const uid = this._uidCounter
-      this._uidCounter = this._uidCounter < uidMax ? this._uidCounter + 1 : 0
-      return uid
-    }
-
     RemoteClient.prototype.broadcast = function (type, msg) {
-      self._clients.forEach(client => {
+      self.clients.forEach(client => {
         if (client !== this) client.send(type, msg)
       })
     }
 
     RemoteClient.prototype.wsBroadcast = function (type, msg) {
-      self._clients.forEach(client => {
+      self.clients.forEach(client => {
         if (client !== this) client.wsSend(type, msg)
       })
     }
@@ -117,28 +145,33 @@ module.exports = (function () {
 
     this.stop = function () {
       //TODO
-      this._clients.forEach(c => c.destroy())
+      this.clients.forEach(c => c.destroy())
       httpServer.close()
       this._primus.destroy()
       console.log('Server shutting down')
     }
 
     this.broadcast = function (type, msg) {
-      this._clients.forEach((client, uid) => {
+      this.clients.forEach((client, uid) => {
         client.send(type, msg)
       })
     }
 
     this.wsBroadcast = function (type, msg) {
-      this._clients.forEach((client, uid) => {
+      this.clients.forEach((client, uid) => {
         client.wsSend(type, msg)
       })
     }
 
     this._peerConnect = function (spark) {
+      if (this.clients.isFull()) {
+        spark.destroy()
+        return; //Server full
+      }
+
       const peer = new SimplePeer(this._simplePeerConfig)
       const client = new RemoteClient(peer, spark)
-      const uid = this._createUID()
+      const slot = this.clients.addClient(client)
 
       spark.on('data', (data) => {
         if (data.sdp || data.candidate) {
@@ -150,13 +183,13 @@ module.exports = (function () {
       })
 
       spark.on('error', (e) => {
-        this._clients.delete(uid)
+        this.clients.removeClient(slot)
         console.log(e)
         this.emit('disconnect', client)
       })
 
       spark.on('end', () => {
-        this._clients.delete(uid)
+        this.clients.removeClient(slot)
         this.emit('disconnect', client)
       })
 
@@ -165,18 +198,17 @@ module.exports = (function () {
       })
 
       peer.on('connect', () => {
-        this._clients.set(uid, client)
         this.emit('connect', client)
       })
 
       peer.on('error', (e) => {
-        this._clients.delete(uid)
+        this.clients.removeClient(slot)
         console.log(e)
         this.emit('disconnect', client)
       })
 
       peer.on('close', () => {
-        this._clients.delete(uid)
+        this.clients.removeClient(slot)
         this.emit('disconnect', client)
       })
     }
