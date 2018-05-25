@@ -89,13 +89,19 @@ module.exports = (function () {
 
       const slot = self._emptySlots.shift()
 
-      self._clients.set(slot, client)
+      client._peer.on('connect', () => {
+          self._clients.set(slot, client)
+      })
+
       return slot
     }
 
     this.removeClient = function (slot) {
       if (self._clients.has(slot)) {
         self._clients.delete(slot)
+      }
+
+      if (!self._emptySlots.includes(slot)) {
         self._emptySlots.push(slot)
       }
     }
@@ -173,6 +179,10 @@ module.exports = (function () {
       const client = new RemoteClient(peer, spark)
       const slot = this.clients.addClient(client)
 
+      peer.on('connect', () => {
+        this.emit('connect', client)
+      })
+
       spark.on('data', (data) => {
         if (data.sdp || data.candidate) {
           peer.signal(data)
@@ -195,10 +205,6 @@ module.exports = (function () {
 
       peer.on('signal', (data) => {
         spark.write(data)
-      })
-
-      peer.on('connect', () => {
-        this.emit('connect', client)
       })
 
       peer.on('error', (e) => {

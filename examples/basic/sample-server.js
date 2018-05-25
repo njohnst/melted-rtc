@@ -10,8 +10,6 @@ const server = new Melted (httpServer, meltedConfig)
 server.start()
 
 server.on('connect', function (client) {
-  console.log(server.clients)
-
   client.wsPing().then((rtt) => console.log("ws", rtt))
                  .catch((e) => console.log(`Error: ${e}`))
   client.ping().then((rtt) => console.log("rtc", rtt))
