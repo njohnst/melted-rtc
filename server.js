@@ -42,6 +42,10 @@ module.exports = (function () {
     this._peer = peer
     this._spark = spark
 
+    this.getId = () => {
+      return this._id
+    }
+
     this.send = (type, msg) => {
       this._peer.send(msgpack.encode({ [type] : msg }))
     }
@@ -90,7 +94,8 @@ module.exports = (function () {
       const slot = self._emptySlots.shift()
 
       client._peer.on('connect', () => {
-          self._clients.set(slot, client)
+        client._id = slot
+        self._clients.set(slot, client)
       })
 
       return slot
@@ -131,13 +136,13 @@ module.exports = (function () {
 
     RemoteClient.prototype.broadcast = function (type, msg) {
       self.clients.forEach(client => {
-        if (client !== this) client.send(type, msg)
+        if (client.getId() !== this.getId()) client.send(type, msg)
       })
     }
 
     RemoteClient.prototype.wsBroadcast = function (type, msg) {
       self.clients.forEach(client => {
-        if (client !== this) client.wsSend(type, msg)
+        if (client.getId() !== this.getId()) client.wsSend(type, msg)
       })
     }
 
@@ -172,7 +177,7 @@ module.exports = (function () {
     this._peerConnect = function (spark) {
       if (this.clients.isFull()) {
         spark.destroy()
-        return; //Server full
+        return //Server full
       }
 
       const peer = new SimplePeer(this._simplePeerConfig)
