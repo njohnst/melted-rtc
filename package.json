@@ -13,11 +13,11 @@
     "url": "https://github.com/njohnst/melted-rtc.git"
   },
   "dependencies": {
-    "express": "^4.16.3",
+    "express": "^4.16.4",
     "http": "0.0.0",
     "imports-loader": "^0.7.1",
     "msgpack-lite": "^0.1.26",
-    "primus": "^7.2.2",
+    "primus": "^7.2.3",
     "primus-msgpack": "^1.0.2",
     "simple-peer": "^8.5.0",
     "uws": "^9.148.0",
